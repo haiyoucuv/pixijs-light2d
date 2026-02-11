@@ -1,0 +1,7 @@
+export * from './Light2DSystem';
+export * from './lights/AmbientLight';
+export * from './lights/PointLight';
+export * from './scene/sprite/LightSprite';
+export * from './scene/sprite/LightSpritePipe';
+export * from './scene/spine/LightSpine';
+export * from './scene/spine/LightSpinePipe';

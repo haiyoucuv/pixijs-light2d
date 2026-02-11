@@ -1,0 +1,58 @@
+{
+  "name": "@pixi/light2d",
+  "version": "1.0.0",
+  "description": "A high-performance 2D lighting system for PixiJS v8, supporting point lights, ambient light, and normal maps.",
+  "type": "module",
+  "main": "./dist/pixi-light2d.umd.js",
+  "module": "./dist/pixi-light2d.es.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/pixi-light2d.es.js",
+      "require": "./dist/pixi-light2d.umd.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "pixi.js",
+    "pixi",
+    "2d",
+    "lighting",
+    "shader",
+    "webgl",
+    "webgpu",
+    "spine"
+  ],
+  "author": "haiyoucuv",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/haiyoucuv/pixijs-light2d.git"
+  },
+  "bugs": {
+    "url": "https://github.com/haiyoucuv/pixijs-light2d/issues"
+  },
+  "homepage": "https://github.com/haiyoucuv/pixijs-light2d#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && tsc --project tsconfig.build.json",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "@esotericsoftware/spine-pixi-v8": "^4.2.0",
+    "pixi.js": "^8.0.0"
+  },
+  "devDependencies": {
+    "@esotericsoftware/spine-pixi-v8": "^4.2.101",
+    "lil-gui": "^0.21.0",
+    "pixi.js": "^8.16.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}
