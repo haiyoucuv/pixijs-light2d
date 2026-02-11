@@ -35,9 +35,31 @@ export class LightSpine extends Spine {
     /** 该 Spine 实例使用的法线贴图。 */
     public normalMap: Texture;
 
+    private static _DEFAULT_NORMAL: Texture;
+
+    /**
+     * 返回默认的平坦法线贴图（中性蓝：RGB 128, 128, 255）。
+     * 这使得 Spine 对光照的反应就像是一个面对摄像机的平坦表面。
+     */
+    public static get DEFAULT_NORMAL(): Texture {
+        if (!this._DEFAULT_NORMAL) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1;
+            canvas.height = 1;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                // 中性法线：[0.5, 0.5, 1.0] -> RGB(128, 128, 255)
+                ctx.fillStyle = 'rgb(128, 128, 255)';
+                ctx.fillRect(0, 0, 1, 1);
+            }
+            this._DEFAULT_NORMAL = Texture.from(canvas);
+        }
+        return this._DEFAULT_NORMAL;
+    }
+
     constructor(options: LightSpineOptions) {
         super(options);
-        this.normalMap = options.normalMap || Texture.WHITE;
+        this.normalMap = options.normalMap || LightSpine.DEFAULT_NORMAL;
     }
 
     /**
@@ -82,7 +104,7 @@ export class LightSpine extends Spine {
             darkTint,
             autoUpdate,
             boundsProvider,
-            normalMap: normalMap || Texture.WHITE,
+            normalMap: normalMap || LightSpine.DEFAULT_NORMAL,
         });
     }
 }
