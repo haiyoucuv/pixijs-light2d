@@ -1,5 +1,5 @@
 {
-  "name": "@pixi/light2d",
+  "name": "pixijs-light2d",
   "version": "1.0.0",
   "description": "A high-performance 2D lighting system for PixiJS v8, supporting point lights, ambient light, and normal maps.",
   "type": "module",
@@ -30,7 +30,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/haiyoucuv/pixijs-light2d.git"
+    "url": "git+https://github.com/haiyoucuv/pixijs-light2d.git"
   },
   "bugs": {
     "url": "https://github.com/haiyoucuv/pixijs-light2d/issues"

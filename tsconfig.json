@@ -20,7 +20,9 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@pixi/light2d": ["src/index.ts"]
+      "pixijs-light2d": [
+        "src/index.ts"
+      ]
     }
   },
   "include": ["src", "examples"]

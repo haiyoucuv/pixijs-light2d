@@ -1,4 +1,4 @@
-# @pixi/light2d
+# pixijs-light2d
 
 [Choose Language: English | [中文](README.zh-CN.md)]
 
@@ -19,7 +19,7 @@ A high-performance 2D lighting system for PixiJS v8, designed to bring dynamic l
 ## Installation
 
 ```bash
-npm install @pixi/light2d
+npm install pixijs-light2d
 ```
 
 Ensure you also have the peer dependencies installed:
@@ -36,7 +36,7 @@ Register the custom render pipes with PixiJS before initializing your applicatio
 
 ```typescript
 import { extensions } from 'pixi.js';
-import { LightSpritePipe, LightSpinePipe } from '@pixi/light2d';
+import { LightSpritePipe, LightSpinePipe } from 'pixijs-light2d';
 
 extensions.add(LightSpritePipe);
 extensions.add(LightSpinePipe);
@@ -48,7 +48,7 @@ Initialize your `Application` and add lights to the `light2dSystem`.
 
 ```typescript
 import { Application } from 'pixi.js';
-import { light2DSystem, AmbientLight, PointLight } from '@pixi/light2d';
+import { light2DSystem, AmbientLight, PointLight } from 'pixijs-light2d';
 
 const app = new Application();
 await app.init({ preference: 'webgl' });
@@ -78,7 +78,7 @@ Use `LightSprite` instead of standard `Sprite`. It requires a `normalMap` textur
 
 ```typescript
 import { Assets } from 'pixi.js';
-import { LightSprite } from '@pixi/light2d';
+import { LightSprite } from 'pixijs-light2d';
 
 const texture = await Assets.load('path/to/texture.png');
 const normalMap = await Assets.load('path/to/normal.png');
@@ -95,7 +95,7 @@ app.stage.addChild(sprite);
 Use `LightSpine` for Spine animations. It automatically handles normal maps if your atlas is configured correctly or manually provided.
 
 ```typescript
-import { LightSpine } from '@pixi/light2d';
+import { LightSpine } from 'pixijs-light2d';
 
 const spine = LightSpine.from({
     skeleton: 'path/to/skeleton.json',

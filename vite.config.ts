@@ -6,7 +6,7 @@ export default defineConfig({
     publicDir: process.env.NODE_ENV === 'production' ? false : 'public',
     resolve: {
         alias: {
-            '@pixi/light2d': path.resolve(__dirname, './src/index.ts'),
+            'pixijs-light2d': path.resolve(__dirname, './src/index.ts'),
         },
     },
     build: {

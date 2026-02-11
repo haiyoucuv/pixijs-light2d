@@ -1,4 +1,4 @@
-# @pixi/light2d
+# pixijs-light2d
 
 [Choose Language: [English](README.md) | 中文]
 
@@ -16,7 +16,7 @@
 ## 安装
 
 ```bash
-npm install @pixi/light2d
+npm install pixijs-light2d
 ```
 
 请确保您也安装了必要的对等依赖：
@@ -33,7 +33,7 @@ npm install pixi.js @esotericsoftware/spine-pixi-v8
 
 ```typescript
 import { extensions } from 'pixi.js';
-import { LightSpritePipe, LightSpinePipe } from '@pixi/light2d';
+import { LightSpritePipe, LightSpinePipe } from 'pixijs-light2d';
 
 extensions.add(LightSpritePipe);
 extensions.add(LightSpinePipe);
@@ -45,7 +45,7 @@ extensions.add(LightSpinePipe);
 
 ```typescript
 import { Application } from 'pixi.js';
-import { light2DSystem, AmbientLight, PointLight } from '@pixi/light2d';
+import { light2DSystem, AmbientLight, PointLight } from 'pixijs-light2d';
 
 const app = new Application();
 await app.init({ preference: 'webgl' });
@@ -75,7 +75,7 @@ app.ticker.add(() => {
 
 ```typescript
 import { Assets } from 'pixi.js';
-import { LightSprite } from '@pixi/light2d';
+import { LightSprite } from 'pixijs-light2d';
 
 const texture = await Assets.load('path/to/texture.png');
 const normalMap = await Assets.load('path/to/normal.png');
@@ -92,7 +92,7 @@ app.stage.addChild(sprite);
 Spine 动画请使用 `LightSpine`。如果您的 atlas 配置正确，它会自动处理法线贴图，也可以手动提供。
 
 ```typescript
-import { LightSpine } from '@pixi/light2d';
+import { LightSpine } from 'pixijs-light2d';
 
 const spine = LightSpine.from({
     skeleton: 'path/to/skeleton.json',

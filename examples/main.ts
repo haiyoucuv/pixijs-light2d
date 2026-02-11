@@ -7,7 +7,7 @@ import {
     LightSpinePipe,
     LightSprite,
     LightSpine
-} from '@pixi/light2d';
+} from 'pixijs-light2d';
 import GUI from 'lil-gui'; 
 
 // 注册自定义渲染管线
