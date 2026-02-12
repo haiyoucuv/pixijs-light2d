@@ -4,6 +4,8 @@
 
 为 PixiJS v8 设计的高性能 2D 光照系统，为 2D 游戏带来动态光照、法线贴图和实时阴影。
 
+![Demo Preview](https://github.com/haiyoucuv/pixijs-light2d/raw/master/public/preview.png)
+
 ## 特性
 
 - **动态点光源**: 支持多个点光源，可调节颜色、强度和半径。

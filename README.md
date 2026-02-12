@@ -4,6 +4,8 @@
 
 A high-performance 2D lighting system for PixiJS v8, designed to bring dynamic lighting, normal mapping, and real-time shadows to your 2D games.
 
+![Demo Preview](https://github.com/haiyoucuv/pixijs-light2d/raw/master/public/preview.png)
+
 ## Features
 
 - **Dynamic Point Lights**: Support for multiple point lights with adjustable color, intensity, and radius.
