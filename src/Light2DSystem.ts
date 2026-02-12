@@ -1,13 +1,29 @@
-import { UniformGroup, Color } from 'pixi.js';
+import { UniformGroup, Color, ExtensionType, type Application, extensions } from 'pixi.js';
 import type { PointLight } from './lights/PointLight';
 import type { AmbientLight } from './lights/AmbientLight';
 
 /**
  * PixiJS 2D 光照系统的核心管理类。
- * 负责管理全局环境光和多达 32 个动态点光源。
- * 数据被打包成 UniformGroup，以便高效地更新 GPU 数据。
+ * 注册为 Application 插件，自动挂载生命周期。
  */
 export class Light2DSystem {
+    /** 插件配置：作为 Application 扩展 */
+    public static extension = {
+        type: ExtensionType.Application,
+        name: 'light2dSystem',
+    } as const;
+
+    /** 插件初始化：自动绑定 Ticker */
+    public static init(this: Application) {
+        // 在 Application 插件中，this 指向 app 实例
+        this.ticker.add((ticker) => {
+            light2DSystem.update(ticker.lastTime);
+        });
+    }
+
+    // 状态锁
+    private _lastUpdateTime = -1;
+
     /** 着色器支持的最大点光源数量。 */
     public static readonly MAX_LIGHTS = 32;
 
@@ -65,8 +81,13 @@ export class Light2DSystem {
      * 同步所有光照属性到 GPU 缓冲区。
      * 通常在每帧渲染前调用一次。
      */
-    public update() {
-        // 1. 确定激活的光源数量（上限为 MAX_LIGHTS）
+    public update(time?: number) {
+        // 1. 帧去重：如果同一帧已经被 Render Pass 触发过，则跳过
+        // (虽然 Ticker 只有一次，但保留此检查以防万一其他 Runner 触发)
+        if (time !== undefined && time === this._lastUpdateTime) return;
+        this._lastUpdateTime = time || -1;
+
+    // 确定激活的光源数量（上限为 MAX_LIGHTS）
         const count = this.lights.length > Light2DSystem.MAX_LIGHTS ? 
                       Light2DSystem.MAX_LIGHTS : this.lights.length;
 
@@ -98,11 +119,14 @@ export class Light2DSystem {
         // 3. 更新各个点光源数据
         for (let i = 0; i < count; i++) {
             const light = this.lights[i];
-            const worldPos = light.worldTransform;
+
+
+            // 获取最新的全局坐标（避免 worldTransform 滞后）
+            const globalPos = light.getGlobalPosition();
             
             // 光源位置（世界坐标系）
-            this.uLightPos[i * 2] = worldPos.tx;
-            this.uLightPos[i * 2 + 1] = worldPos.ty;
+            this.uLightPos[i * 2] = globalPos.x;
+            this.uLightPos[i * 2 + 1] = globalPos.y;
             
             // 光源颜色（归一化的 RGB）
             this.uLightColor[i * 3] = light.lightColor.red;
@@ -121,3 +145,6 @@ export class Light2DSystem {
 
 /** 2D 光照系统的全局单例实例。 */
 export const light2DSystem = new Light2DSystem();
+
+// 注册插件
+extensions.add(Light2DSystem);

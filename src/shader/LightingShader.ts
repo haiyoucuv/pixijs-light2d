@@ -1,5 +1,6 @@
 import { Shader, GlProgram, Texture, UniformGroup } from 'pixi.js';
 import { light2DSystem } from '../Light2DSystem';
+import { shadowSystem } from '../location/shadow/ShadowSystem';
 
 /**
  * 通用的 2D 光照着色器类。
@@ -58,6 +59,11 @@ export class LightingShader extends Shader {
             uniform float uLightIntensity[32];
             uniform float uLightCount;
             
+            // 阴影图（来自 ShadowSystem，暂时只支持光照索引 0）
+            uniform sampler2D uShadowMap;
+
+            #define PI 3.14159265359
+
             out vec4 finalColor;
             
             void main() {
@@ -73,18 +79,56 @@ export class LightingShader extends Shader {
                     if (float(i) >= uLightCount) break;
                     
                     vec2 lightPos = uLightPos[i];
-                    vec2 dir2d = lightPos - vWorldPos;
+                    vec2 dir2d = lightPos - vWorldPos; // 指向光源
+                    // 注意：这里的 dir2d 是从像素指向光源
+
                     float dist = length(dir2d);
                     float radius = uLightRadius[i];
                     
                     if (dist < radius) {
-                        // 平滑的光照距离衰减
-                        float atten = pow(1.0 - (dist / radius), 2.0);
-                        // 构造半虚拟 3D 光照方向：Z 轴设为 100 以获得柔和顶光效果
-                        vec3 lightDir = normalize(vec3(dir2d, 100.0));
-                        // 兰伯特漫反射分量 (N dot L)
-                        float diff = max(dot(normal, lightDir), 0.0);
-                        diffuseTotal += uLightColor[i] * uLightIntensity[i] * diff * atten;
+                        float shadowFactor = 1.0;
+
+                        // 简单的硬编码：只有前 4 个光源产生阴影 (RGBA通道对应 0-3)
+                        if (i < 4) {
+                            // 计算从光源指向像素的角度
+                            // dir2d 是 像素->光源，我们需要 光源->像素 = -dir2d
+                            vec2 lightToPixel = -dir2d;
+                            // 翻转 Y 轴以匹配 Texture 坐标系 (Y 向下 vs 数学逆时针)
+                            float angle = atan(lightToPixel.y, lightToPixel.x);
+                            // 将角度 [-PI, PI] 映射到 UV [0, 1]
+                            // 注意：需要跟 ShadowMap 生成时的方向一致
+                            if (angle < 0.0) angle += 2.0 * PI;
+                            float shadowUV = angle / (2.0 * PI);
+
+                            // 采样 Shadow Map (RGBA通道存储归一化距离)
+                            vec4 shadowData = texture(uShadowMap, vec2(shadowUV, 0.5));
+                            float shadowDistNorm = 0.0;
+
+                            // 简单的通道选择 (GLSL 300 es 确保性能)
+                            if (i == 0) shadowDistNorm = shadowData.r;
+                            else if (i == 1) shadowDistNorm = shadowData.g;
+                            else if (i == 2) shadowDistNorm = shadowData.b;
+                            else if (i == 3) shadowDistNorm = shadowData.a;
+
+                            float shadowDist = shadowDistNorm * radius; // 还原为世界距离
+
+                            // 距离比较 (加一点偏差防止自遮挡)
+                            // 注意: 边缘处可能有插值 artifacts，但在 1D map usually fine
+                            if (dist > shadowDist + 1.0) {
+                                shadowFactor = 0.0;
+                            }
+                        }
+
+                        if (shadowFactor > 0.0) {
+                            // 平滑的光照距离衰减
+                            float atten = pow(1.0 - (dist / radius), 2.0);
+                            // 构造半虚拟 3D 光照方向：Z 轴设为 100 以获得柔和顶光效果
+                            vec3 lightDir = normalize(vec3(dir2d, 100.0));
+                            // 兰伯特漫反射分量 (N dot L)
+                            float diff = max(dot(normal, lightDir), 0.0);
+
+                            diffuseTotal += uLightColor[i] * uLightIntensity[i] * diff * atten * shadowFactor;
+                        }
                     }
                 }
                 
@@ -115,6 +159,9 @@ export class LightingShader extends Shader {
                 uNormalSampler: normal.source.style,
                 // 全局光照 Uniform 分组（共享 Light2DSystem 资源）
                 lighting: light2DSystem.uniformGroup,
+                // 阴影图资源
+                uShadowMap: shadowSystem.shadowMapTexture.source,
+                uShadowMapSampler: shadowSystem.shadowMapTexture.source.style,
             }
         });
     }

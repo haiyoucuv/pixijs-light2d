@@ -2,16 +2,20 @@
 
 [Choose Language: [English](README.md) | 中文]
 
-为 PixiJS v8 打造的高性能 2D 光照系统，旨在为您的 2D 游戏带来动态光照、法线贴图和柔和阴影效果。
+为 PixiJS v8 设计的高性能 2D 光照系统，为 2D 游戏带来动态光照、法线贴图和实时阴影。
 
 ## 特性
 
-- **动态点光源**：支持多个具有不同颜色、强度和半径的可调点光源。
-- **环境光照**：全局环境光控制，轻松设定场景氛围。
-- **法线贴图**：完全支持 Sprite 和 Spine 动画的法线贴图，渲染逼真的表面细节。
-- **Spine 支持**：与 `@esotericsoftware/spine-pixi-v8` 无缝集成，实现骨骼动画的动态光照效果。
-- **批量渲染**：针对性能优化的自定义批量渲染器 (`LightSpritePipe`)，确保在大量光照对象下仍保持高帧率。
-- **WebGPU 就绪**：基于 PixiJS v8 架构构建，为未来的 Web 图形技术做好准备。
+- **动态点光源**: 支持多个点光源，可调节颜色、强度和半径。
+- **环境光**: 全局环境光控制，定义场景整体氛围。
+- **法线贴图**: 完整支持 Sprite 与 Spine 动画的法线贴图，实现逼真的表面细节。
+- **实时阴影**: 基于 1D Shadow Map 的阴影生成，支持多种遮挡物。
+  - 全局遮挡图：所有遮挡物统一渲染到一张共享纹理，提高效率。
+  - 多光源单次渲染：利用 RGBA 通道打包，一次 Draw Call 同时为最多 4 个光源生成阴影。
+  - Texel Snapping + 量化包围盒：确保光源移动时阴影边缘稳定、无抖动。
+- **Spine 支持**: 无缝集成 `@esotericsoftware/spine-pixi-v8`，骨骼动画也能拥有动态光照。
+- **批处理渲染器**: 自定义批渲染管线（`LightSpritePipe`），即使大量受光物体也能保持高帧率。
+- **WebGPU 就绪**: 基于 PixiJS v8 架构构建，为未来的 Web 图形做好准备。
 
 ## 安装
 
@@ -19,7 +23,7 @@
 npm install pixijs-light2d
 ```
 
-请确保您也安装了必要的对等依赖：
+请确保已安装对等依赖：
 
 ```bash
 npm install pixi.js @esotericsoftware/spine-pixi-v8
@@ -29,7 +33,7 @@ npm install pixi.js @esotericsoftware/spine-pixi-v8
 
 ### 1. 注册插件
 
-在初始化应用程序之前，先向 PixiJS 注册自定义的渲染管线。
+在初始化应用程序之前，向 PixiJS 注册自定义渲染管线。
 
 ```typescript
 import { extensions } from 'pixi.js';
@@ -41,7 +45,7 @@ extensions.add(LightSpinePipe);
 
 ### 2. 初始化光照系统
 
-初始化您的 `Application` 并将光源添加到 `light2dSystem` 中。
+创建 `Application` 实例，向 `light2DSystem` 添加光源。
 
 ```typescript
 import { Application } from 'pixi.js';
@@ -61,7 +65,7 @@ light.y = 300;
 app.stage.addChild(light);
 light2DSystem.addLight(light);
 
-// 每帧更新着色器 uniform 数据
+// 每帧更新着色器 Uniform 数据
 app.ticker.add(() => {
     light2DSystem.update();
 });
@@ -97,9 +101,64 @@ import { LightSpine } from 'pixijs-light2d';
 const spine = LightSpine.from({
     skeleton: 'path/to/skeleton.json',
     atlas: 'path/to/skeleton.atlas',
-    normalMap: normalMapTexture // 可选：为该 spine 手动指定全局法线贴图
+    normalMap: normalMapTexture // 可选：为该 Spine 手动指定全局法线贴图
 });
 app.stage.addChild(spine);
+```
+
+### 4. 阴影（可选）
+
+添加阴影遮挡物，并在每帧更新阴影系统。
+
+```typescript
+import { ShadowCaster, shadowSystem } from 'pixijs-light2d';
+
+// 创建遮挡物
+const caster = new ShadowCaster();
+caster.setBox(0, 0, 100, 100);  // 矩形遮挡物
+caster.position.set(300, 300);
+app.stage.addChild(caster);
+shadowSystem.addCaster(caster);
+
+// 也支持圆形遮挡物
+const circle = new ShadowCaster();
+circle.setCircle(0, 0, 50);     // 圆形遮挡物（多边形逼近）
+circle.position.set(500, 200);
+app.stage.addChild(circle);
+shadowSystem.addCaster(circle);
+
+// 在 Ticker 中更新阴影系统
+app.ticker.add(() => {
+    shadowSystem.update(app.renderer, lights.map(l => ({
+        position: l.position,
+        radius: l.radius
+    })));
+});
+```
+
+## 项目结构
+
+```
+src/
+├── index.ts                  # 公开 API 导出
+├── Light2DSystem.ts          # 核心光照 Uniform 管理器（单例）
+├── lights/
+│   ├── AmbientLight.ts       # 全局环境光组件
+│   └── PointLight.ts         # 点光源组件
+├── scene/
+│   ├── sprite/
+│   │   ├── LightSprite.ts    # 受光 Sprite（漫反射 + 法线贴图）
+│   │   └── LightSpritePipe.ts# 自定义批渲染管线
+│   └── spine/
+│       ├── LightSpine.ts     # 受光 Spine 动画
+│       └── LightSpinePipe.ts # 自定义 Spine 渲染管线
+├── shader/
+│   └── LightingShader.ts     # GLSL 光照片段着色器
+└── location/
+    └── shadow/
+        ├── ShadowSystem.ts   # 阴影贴图生成（遮挡图 + 光线步进）
+        └── caster/
+            └── ShadowCaster.ts # 阴影投射体（遮挡物）
 ```
 
 ## 开发指引

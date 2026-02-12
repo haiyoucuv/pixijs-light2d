@@ -5,3 +5,5 @@ export * from './scene/sprite/LightSprite';
 export * from './scene/sprite/LightSpritePipe';
 export * from './scene/spine/LightSpine';
 export * from './scene/spine/LightSpinePipe';
+export * from './location/shadow/caster/ShadowCaster';
+export * from './location/shadow/ShadowSystem';

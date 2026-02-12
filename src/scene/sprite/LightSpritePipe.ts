@@ -1,6 +1,5 @@
 import { type LightSprite } from './LightSprite';
 import { LightingShader } from '../../shader/LightingShader';
-import { light2DSystem } from '../../Light2DSystem';
 import {
     ExtensionType,
     Geometry,
@@ -74,15 +73,9 @@ export class LightSpritePipe implements RenderPipe<LightSprite>, InstructionPipe
     /** 当前批次的基础渲染状态。 */
     private _activeSpriteState: State | null = null;
 
-    constructor(renderer: Renderer)
-    {
+    constructor(renderer: Renderer) {
         this._renderer = renderer as WebGLRenderer | WebGPURenderer;
         this._initBatchGeometry();
-
-        // 注册 postrender 钩子。
-        // 强制在每帧渲染结束时 Flush，防止 Instruction Reuse 导致 FLUSH 指令缺失或时序错误。
-        const runners = this._renderer.runners as Record<string, { add?(obj: unknown): void; remove?(obj: unknown): void }>;
-        runners.postrender?.add?.(this);
     }
 
     /**
@@ -133,8 +126,7 @@ export class LightSpritePipe implements RenderPipe<LightSprite>, InstructionPipe
      * 将 LightSprite 添加到当前的渲染指令集中。
      * 这决定了 Sprite 属于哪个绘制指令。
      */
-    public addRenderable(sprite: LightSprite, instructionSet: InstructionSet)
-    {
+    public addRenderable(sprite: LightSprite, instructionSet: InstructionSet) {
         const batchPipe = this._renderer.renderPipes.batch as BatcherPipe;
 
         // 必须先打断 Pixi 默认 Batcher，确保之前的普通 Sprite 被提交为渲染指令。
@@ -156,17 +148,22 @@ export class LightSpritePipe implements RenderPipe<LightSprite>, InstructionPipe
         }
     }
 
-    public updateRenderable() {}
-    public validateRenderable() { return false; } // 为了稳定性，暂时禁用指令集复用
-    public destroyRenderable() {}
+    public updateRenderable() {
+    }
+
+    public validateRenderable() {
+        return false;
+    }
+
+    public destroyRenderable() {
+    }
 
     private readonly _projArray = new Float32Array(16);
 
     /**
      * 将 2D 矩阵转换为 WebGL 兼容的 4x4 mat4 数组。
      */
-    private _setMat4(target: Float32Array, source: Matrix)
-    {
+    private _setMat4(target: Float32Array, source: Matrix) {
         target[0] = source.a;
         target[1] = source.b;
         target[2] = 0;
@@ -192,8 +189,7 @@ export class LightSpritePipe implements RenderPipe<LightSprite>, InstructionPipe
      * 执行具体的渲染绘制逻辑。
      * 遍历批次中的所有 Sprite，并根据材质状态决定何时渲染。
      */
-    public execute(instruction: LightBatch)
-    {
+    public execute(instruction: LightBatch) {
         const sprites = instruction.sprites;
         if (!sprites) return;
 
@@ -305,14 +301,22 @@ export class LightSpritePipe implements RenderPipe<LightSprite>, InstructionPipe
         const h1 = texture.height * -anchorY;
 
         // 将本地坐标通过 2D 世界矩阵变换到屏幕空间
-        const a = wt.a; const b = wt.b; const c = wt.c; const d = wt.d;
-        const tx = wt.tx; const ty = wt.ty;
+        const a = wt.a;
+        const b = wt.b;
+        const c = wt.c;
+        const d = wt.d;
+        const tx = wt.tx;
+        const ty = wt.ty;
 
         // 按 TL, TR, BR, BL 顺序计算顶点世界坐标
-        const x0 = a * w1 + c * h1 + tx; const y0 = b * w1 + d * h1 + ty; // Top-Left
-        const x1 = a * w0 + c * h1 + tx; const y1 = b * w0 + d * h1 + ty; // Top-Right
-        const x2 = a * w0 + c * h0 + tx; const y2 = b * w0 + d * h0 + ty; // Bottom-Right
-        const x3 = a * w1 + c * h0 + tx; const y3 = b * w1 + d * h0 + ty; // Bottom-Left
+        const x0 = a * w1 + c * h1 + tx;
+        const y0 = b * w1 + d * h1 + ty; // Top-Left
+        const x1 = a * w0 + c * h1 + tx;
+        const y1 = b * w0 + d * h1 + ty; // Top-Right
+        const x2 = a * w0 + c * h0 + tx;
+        const y2 = b * w0 + d * h0 + ty; // Bottom-Right
+        const x3 = a * w1 + c * h0 + tx;
+        const y3 = b * w1 + d * h0 + ty; // Bottom-Left
 
         // 提取颜色和透明度并转换为归一化的浮点数
         const color = sprite.groupColor;
@@ -329,49 +333,50 @@ export class LightSpritePipe implements RenderPipe<LightSprite>, InstructionPipe
 
         // 填充 4 个顶点的数据
         // Vertex 0 (TL)
-        this._vertexArray[offset++] = x0; this._vertexArray[offset++] = y0;
-        this._vertexArray[offset++] = uvs.x0; this._vertexArray[offset++] = uvs.y0;
-        this._vertexArray[offset++] = r; this._vertexArray[offset++] = g; this._vertexArray[offset++] = b_col; this._vertexArray[offset++] = alpha;
+        this._vertexArray[offset++] = x0;
+        this._vertexArray[offset++] = y0;
+        this._vertexArray[offset++] = uvs.x0;
+        this._vertexArray[offset++] = uvs.y0;
+        this._vertexArray[offset++] = r;
+        this._vertexArray[offset++] = g;
+        this._vertexArray[offset++] = b_col;
+        this._vertexArray[offset++] = alpha;
 
         // Vertex 1 (TR)
-        this._vertexArray[offset++] = x1; this._vertexArray[offset++] = y1;
-        this._vertexArray[offset++] = uvs.x1; this._vertexArray[offset++] = uvs.y1;
-        this._vertexArray[offset++] = r; this._vertexArray[offset++] = g; this._vertexArray[offset++] = b_col; this._vertexArray[offset++] = alpha;
+        this._vertexArray[offset++] = x1;
+        this._vertexArray[offset++] = y1;
+        this._vertexArray[offset++] = uvs.x1;
+        this._vertexArray[offset++] = uvs.y1;
+        this._vertexArray[offset++] = r;
+        this._vertexArray[offset++] = g;
+        this._vertexArray[offset++] = b_col;
+        this._vertexArray[offset++] = alpha;
 
         // Vertex 2 (BR)
-        this._vertexArray[offset++] = x2; this._vertexArray[offset++] = y2;
-        this._vertexArray[offset++] = uvs.x2; this._vertexArray[offset++] = uvs.y2;
-        this._vertexArray[offset++] = r; this._vertexArray[offset++] = g; this._vertexArray[offset++] = b_col; this._vertexArray[offset++] = alpha;
+        this._vertexArray[offset++] = x2;
+        this._vertexArray[offset++] = y2;
+        this._vertexArray[offset++] = uvs.x2;
+        this._vertexArray[offset++] = uvs.y2;
+        this._vertexArray[offset++] = r;
+        this._vertexArray[offset++] = g;
+        this._vertexArray[offset++] = b_col;
+        this._vertexArray[offset++] = alpha;
 
         // Vertex 3 (BL)
-        this._vertexArray[offset++] = x3; this._vertexArray[offset++] = y3;
-        this._vertexArray[offset++] = uvs.x3; this._vertexArray[offset++] = uvs.y3;
-        this._vertexArray[offset++] = r; this._vertexArray[offset++] = g; this._vertexArray[offset++] = b_col; this._vertexArray[offset++] = alpha;
-    }
-
-    /**
-     * 渲染周期结束钩子，确保最后一批残留的数据被强制提交。
-     */
-    public renderEnd() {
-        this._flush();
-    }
-
-    /**
-     * 由 renderer runner 调用的每帧末尾钩子。
-     */
-    public postrender() {
-        this._flush();
-        // 更新并同步全局光照系统数据
-        light2DSystem.update();
+        this._vertexArray[offset++] = x3;
+        this._vertexArray[offset++] = y3;
+        this._vertexArray[offset++] = uvs.x3;
+        this._vertexArray[offset++] = uvs.y3;
+        this._vertexArray[offset++] = r;
+        this._vertexArray[offset++] = g;
+        this._vertexArray[offset++] = b_col;
+        this._vertexArray[offset++] = alpha;
     }
 
     /**
      * 清理资源并从渲染链中移除。
      */
-    public destroy()
-    {
-        const runners = this._renderer.runners as Record<string, { add?(obj: unknown): void; remove?(obj: unknown): void }>;
-        runners.postrender?.remove?.(this);
+    public destroy() {
         this._shaderCache.clear();
         this._renderer = null!;
     }

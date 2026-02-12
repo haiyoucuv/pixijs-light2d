@@ -1,6 +1,6 @@
 {
   "name": "pixijs-light2d",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A high-performance 2D lighting system for PixiJS v8, supporting point lights, ambient light, and normal maps.",
   "type": "module",
   "main": "./dist/pixi-light2d.umd.js",
@@ -52,6 +52,7 @@
     "@esotericsoftware/spine-pixi-v8": "^4.2.101",
     "lil-gui": "^0.21.0",
     "pixi.js": "^8.16.0",
+    "pixi-stats": "^5.1.7",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }

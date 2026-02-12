@@ -2,16 +2,17 @@
 
 [Choose Language: English | [中文](README.zh-CN.md)]
 
-A high-performance 2D lighting system for PixiJS v8, designed to bring dynamic lighting, normal mapping, and soft shadows to your 2D games.
-
-![Demo Preview](https://github.com/haiyoucuv/pixijs-light2d/raw/master/public/preview.png)
-*(Note: Replace with an actual preview image if available)*
+A high-performance 2D lighting system for PixiJS v8, designed to bring dynamic lighting, normal mapping, and real-time shadows to your 2D games.
 
 ## Features
 
 - **Dynamic Point Lights**: Support for multiple point lights with adjustable color, intensity, and radius.
 - **Ambient Lighting**: Global ambient light control to set the mood of your scene.
 - **Normal Mapping**: Full support for normal maps on Sprites and Spine animations for realistic surface details.
+- **Real-time Shadows**: 1D shadow map generation with support for multiple shadow-casting obstacles.
+  - Global Occlusion Map: All shadow casters are rendered into a single shared texture for efficiency.
+  - Multi-Light Single Pass: Up to 4 lights generate shadows simultaneously via RGBA channel packing.
+  - Texel Snapping & Quantized Bounds: Ensures stable, jitter-free shadows even when lights move.
 - **Spine Support**: Seamless integration with `@esotericsoftware/spine-pixi-v8`, enabling dynamic lighting on skeletal animations.
 - **Batch Renderer**: Custom batch renderer (`LightSpritePipe`) optimized for performance, ensuring high frame rates even with many lit objects.
 - **WebGPU Ready**: Built on PixiJS v8 architecture, ready for the future of web graphics.
@@ -44,7 +45,7 @@ extensions.add(LightSpinePipe);
 
 ### 2. Setup Lighting System
 
-Initialize your `Application` and add lights to the `light2dSystem`.
+Initialize your `Application` and add lights to the `light2DSystem`.
 
 ```typescript
 import { Application } from 'pixi.js';
@@ -103,6 +104,61 @@ const spine = LightSpine.from({
     normalMap: normalMapTexture // Optional: Global normal map for the spine
 });
 app.stage.addChild(spine);
+```
+
+### 4. Shadows (Optional)
+
+Add shadow casters and update the shadow system each frame.
+
+```typescript
+import { ShadowCaster, shadowSystem } from 'pixijs-light2d';
+
+// Create an obstacle
+const caster = new ShadowCaster();
+caster.setBox(0, 0, 100, 100);  // Rectangle obstacle
+caster.position.set(300, 300);
+app.stage.addChild(caster);
+shadowSystem.addCaster(caster);
+
+// Also supports circular obstacles
+const circle = new ShadowCaster();
+circle.setCircle(0, 0, 50);     // Circle obstacle (polygon approximation)
+circle.position.set(500, 200);
+app.stage.addChild(circle);
+shadowSystem.addCaster(circle);
+
+// In your ticker, update the shadow system with light data
+app.ticker.add(() => {
+    shadowSystem.update(app.renderer, lights.map(l => ({
+        position: l.position,
+        radius: l.radius
+    })));
+});
+```
+
+## Architecture
+
+```
+src/
+├── index.ts                  # Public API exports
+├── Light2DSystem.ts          # Core lighting uniform manager (singleton)
+├── lights/
+│   ├── AmbientLight.ts       # Global ambient light component
+│   └── PointLight.ts         # Point light component
+├── scene/
+│   ├── sprite/
+│   │   ├── LightSprite.ts    # Lit sprite (diffuse + normal map)
+│   │   └── LightSpritePipe.ts# Custom batch render pipe
+│   └── spine/
+│       ├── LightSpine.ts     # Lit Spine animation
+│       └── LightSpinePipe.ts # Custom Spine render pipe
+├── shader/
+│   └── LightingShader.ts     # GLSL lighting fragment shader
+└── location/
+    └── shadow/
+        ├── ShadowSystem.ts   # Shadow map generation (occlusion + raymarching)
+        └── caster/
+            └── ShadowCaster.ts # Shadow-casting obstacle
 ```
 
 ## Development
