@@ -1,3 +1,5 @@
+
+
 # pixijs-light2d
 
 [Choose Language: English | [中文](README.zh-CN.md)]
@@ -131,7 +133,7 @@ shadowSystem.addCaster(circle);
 
 // In your ticker, update the shadow system with light data
 app.ticker.add(() => {
-    shadowSystem.update(app.renderer, lights.map(l => ({
+    shadowSystem.update(app.renderer, light2DSystem.lights.map(l => ({
         position: l.position,
         radius: l.radius
     })));
